@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from '#routes/auth.routes.js';
-import { timestamp } from 'drizzle-orm/gel-core';
+import usersRoutes from '#routes/users.routes.js';
 
 const app = express();
 
@@ -28,6 +28,7 @@ app.get('/health', (req, res) => {res.status(200).json({ status: 'OK', timestamp
 
 app.get('/api', (req, res) => {res.status(200).json({ message: 'Acquisition API is running!' });});
 app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 
 export default app;
 
