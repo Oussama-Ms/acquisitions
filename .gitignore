@@ -3,3 +3,5 @@ node_modules/
 .env
 AGENTS.md
 .neon_local/
+coverage/
+logs/
