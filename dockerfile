@@ -1,42 +1,45 @@
-# Multi-stage Dockerfile for Node.js acquisitions application
-
 # Base image with Node.js
-FROM node:18-alpine AS base
-
-# Set working directory
+FROM node:20-alpine AS base
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
-
+# --- Development Stage (Backend Only) ---
+# Used for local development with docker compose
+FROM base AS development
+# Install all dependencies (including devDependencies)
+RUN npm ci
 # Copy source code
 COPY . .
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
-
-# Change ownership of the app directory
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 RUN chown -R nodejs:nodejs /app
 USER nodejs
-
-# Expose the port
 EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => { process.exit(1) })"
-
-# Development stage
-FROM base AS development
-USER root
-RUN npm ci && npm cache clean --force
-USER nodejs
 CMD ["npm", "run", "dev"]
 
-# Production stage
+# --- Frontend Builder Stage (Production Only) ---
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app/frontend
+# Copy frontend package files
+COPY frontend/package*.json ./
+# Install frontend dependencies
+RUN npm ci
+# Copy frontend source
+COPY frontend/ ./
+# Build frontend
+RUN npm run build
+
+# --- Production Stage (Unified Build) ---
 FROM base AS production
+# Install only production dependencies
+RUN npm ci --only=production
+# Copy backend source
+COPY . .
+# Copy built frontend from builder stage
+COPY --from=frontend-builder /app/frontend/dist ./public
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+RUN chown -R nodejs:nodejs /app
+USER nodejs
+EXPOSE 3000
 CMD ["npm", "start"]

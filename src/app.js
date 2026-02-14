@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import logger from '#config/logger.js';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -10,7 +12,10 @@ import usersRoutes from '#routes/users.routes.js';
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow frontend origin
+  credentials: true, // Allow cookies
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -44,8 +49,26 @@ app.get('/api', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route Not Found' });
+// Serve Static Frontend Files from the 'public' folder
+// (This folder is created by the Dockerfile COPY command)
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const publicPath = path.join(process.cwd(), 'public');
+app.use(express.static(publicPath));
+
+// For any route NOT handled by the API, send back index.html
+// This allows React Router to handle the pages (SPA behavior)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(publicPath, 'index.html'));
 });
+
+// 404 handler for API routes (if needed, but * catches everything)
+// If you want strict API 404s, ensure accessing /api/* that doesn't exist hits this, 
+// but express might match * first if not careful. 
+// Actually, since API routes are defined above with app.use('/api/...'), 
+// specific API 404s should be handled within those routers or by checking if req.path starts with /api
+// For now, simpler is better: if it's not an API route (caught above), it serves frontend.
 
 export default app;
