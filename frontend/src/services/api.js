@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// Use environment variable or fallback to localhost
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// If we are in dev (Vite), use localhost. 
+// If in Prod (Docker/Railway), use relative path (automatic)
+const API_URL = import.meta.env.DEV ? 'http://localhost:3000/api' : '/api';
 
 const api = axios.create({
     baseURL: API_URL,
