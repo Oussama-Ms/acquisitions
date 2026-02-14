@@ -28,10 +28,13 @@ app.use(
   })
 );
 
-app.get('/', (req, res) => {
-  logger.info('Hello from Acquisition!');
-  res.status(200).send('Hello, World!');
-});
+//
+//app.get('/', (req, res) => {
+//  logger.info('Hello from Acquisition!');
+//  res.status(200).send('Hello, World!');
+//});
+//
+
 
 app.get('/health', (req, res) => {
   res
