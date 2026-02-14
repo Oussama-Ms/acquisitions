@@ -60,7 +60,7 @@ app.use(express.static(publicPath));
 
 // For any route NOT handled by the API, send back index.html
 // This allows React Router to handle the pages (SPA behavior)
-app.get('*', (req, res) => {
+app.get('*splat', (req, res) => {
   res.sendFile(path.join(publicPath, 'index.html'));
 });
 
