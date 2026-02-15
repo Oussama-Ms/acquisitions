@@ -127,4 +127,3 @@ ARCJET_KEY=your_key_here
 ## <a name="links">🔗 Assets</a>
 
 -   **[Project Repository](https://github.com/Oussama-Ms/acquisitions)**
--   **[Live Demo](https://your-deployment-url.com)** (Update this link!)
